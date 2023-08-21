@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+
+  elasticsearch:
+    image: elasticsearch:7.17.10
+    environment:
+      - discovery.type=single-node
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+
+  mongo:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+    volumes:
+      - my_Data:/data/db
+
+  ldap:
+    image: osixia/openldap
+    container_name: my-openldap
+    environment:
+      LDAP_DOMAIN: ramhlocal.com
+      LDAP_ADMIN_USERNAME: admin
+      LDAP_ADMIN_PASSWORD: admin_pass
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      - certificates:/container/service/slapd/assets/certs
+      - database:/var/lib/ldap
+      - config:/etc/ldap/slapd.d
+
+
+  hrms-app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+      - ldap
+
+
+
+volumes:
+  my_Data:
+  ldap_data:
+  ldap_config:
+  config:
+  database:
+  certificates:
+  elasticsearch_data:
